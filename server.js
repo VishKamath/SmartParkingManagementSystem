@@ -1,7 +1,10 @@
 const express = require("express");
+const path = require("path");
+
 const app = express();
 
 app.use(express.json());
+app.use(express.static(__dirname)); // 🔥 THIS FIXES YOUR ISSUE
 
 let parkingData = {
     slot1: 0,
@@ -12,7 +15,6 @@ let parkingData = {
 
 app.post("/update", (req, res) => {
     parkingData = req.body;
-    console.log(parkingData);
     res.send("OK");
 });
 
@@ -20,4 +22,4 @@ app.get("/data", (req, res) => {
     res.json(parkingData);
 });
 
-app.listen(3000, () => console.log("Server running"));
+const PORT = process.env.PORT || 3000;
