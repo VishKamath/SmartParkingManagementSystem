@@ -4,7 +4,7 @@ const path = require("path");
 const app = express();
 
 app.use(express.json());
-app.use(express.static(__dirname)); // 🔥 THIS FIXES YOUR ISSUE
+app.use(express.static(__dirname));
 
 let parkingData = {
     slot1: 0,
@@ -22,4 +22,10 @@ app.get("/data", (req, res) => {
     res.json(parkingData);
 });
 
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "index.html"));
+});
+
 const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => console.log("Server running"));
