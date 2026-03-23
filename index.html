@@ -7,7 +7,65 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<div class="app">
+
+<!-- ═══════════════════════════════════════════
+     LOGIN SCREEN
+═══════════════════════════════════════════ -->
+<div class="login-screen" id="login-screen">
+  <!-- Ambient glow orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div class="login-card">
+    <!-- Brand -->
+    <div class="login-brand">
+      <div class="login-brand-icon">🅿</div>
+      <div>
+        <div class="login-brand-name">SmartPark</div>
+        <div class="login-brand-tag">Management System</div>
+      </div>
+    </div>
+
+    <div class="login-divider"></div>
+
+    <h2 class="login-heading">Welcome back</h2>
+    <p class="login-sub">Sign in to access your dashboard</p>
+
+    <!-- Form -->
+    <div class="login-form">
+      <div class="field-group">
+        <label class="field-label" for="username">Username</label>
+        <div class="field-wrap">
+          <span class="field-icon">👤</span>
+          <input class="field-input" id="username" type="text" placeholder="Enter username" autocomplete="username" />
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="password">Password</label>
+        <div class="field-wrap">
+          <span class="field-icon">🔑</span>
+          <input class="field-input" id="password" type="password" placeholder="Enter password" autocomplete="current-password" />
+          <button class="toggle-pw" id="toggle-pw" type="button" aria-label="Toggle password visibility">👁</button>
+        </div>
+      </div>
+
+      <div class="login-error" id="login-error">Incorrect username or password.</div>
+
+      <button class="login-btn" id="login-btn" type="button">
+        <span class="login-btn-text">Sign In</span>
+        <span class="login-btn-arrow">→</span>
+      </button>
+    </div>
+
+    <p class="login-hint">Default: <code>admin</code> / <code>smartpark123</code></p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     DASHBOARD (hidden until login)
+═══════════════════════════════════════════ -->
+<div class="app" id="app" style="display:none">
 
   <!-- TOPBAR -->
   <header class="topbar">
@@ -21,6 +79,7 @@
     <div class="topbar-right">
       <div class="pill pill-live"><span class="pulse"></span>LIVE</div>
       <div class="pill pill-time" id="clock">--:--:--</div>
+      <button class="logout-btn" id="logout-btn" title="Sign out">⏻ Logout</button>
     </div>
   </header>
 
@@ -93,87 +152,161 @@
   </main>
 
 </div>
+
 <script>
-  // Clock
-  const clockEl = document.getElementById('clock');
-  function tick() { clockEl.textContent = new Date().toLocaleTimeString('en-IN',{hour12:false}); }
-  tick(); setInterval(tick, 1000);
+  /* ─── Auth ─── */
+  const USERS = { admin: 'smartpark123' };
 
-  // State
-  const TOTAL = 3;
-  let slots = Array.from({length:TOTAL},(_,i)=>({id:i+1,status:'available'}));
+  const loginScreen = document.getElementById('login-screen');
+  const appEl       = document.getElementById('app');
+  const loginBtn    = document.getElementById('login-btn');
+  const loginErr    = document.getElementById('login-error');
+  const togglePw    = document.getElementById('toggle-pw');
+  const pwInput     = document.getElementById('password');
+  const logoutBtn   = document.getElementById('logout-btn');
 
-  function renderSlots() {
-    document.getElementById('slots-list').innerHTML = slots.map(s=>`
-      <div class="slot-card ${s.status}">
-        <div class="sl-left">
-          <div class="sl-num">${s.id}</div>
-          <div>
-            <div class="sl-name">Slot S${s.id}</div>
-            <div class="sl-sub">${s.status}</div>
+  // Restore session
+  if (sessionStorage.getItem('sp_auth') === '1') showDashboard(false);
+
+  function showDashboard(animate) {
+    loginScreen.classList.add('login-screen--out');
+    setTimeout(() => {
+      loginScreen.style.display = 'none';
+      appEl.style.display = 'grid';
+      if (animate) appEl.classList.add('app--enter');
+    }, animate ? 500 : 0);
+    sessionStorage.setItem('sp_auth', '1');
+    initDashboard();
+  }
+
+  function doLogin() {
+    const u = document.getElementById('username').value.trim();
+    const p = pwInput.value;
+    loginBtn.classList.add('login-btn--loading');
+    loginErr.style.display = 'none';
+
+    setTimeout(() => {
+      loginBtn.classList.remove('login-btn--loading');
+      if (USERS[u] && USERS[u] === p) {
+        loginBtn.classList.add('login-btn--success');
+        setTimeout(() => showDashboard(true), 600);
+      } else {
+        loginErr.style.display = 'block';
+        loginScreen.querySelector('.login-card').classList.add('shake');
+        setTimeout(() => loginScreen.querySelector('.login-card').classList.remove('shake'), 500);
+      }
+    }, 700);
+  }
+
+  loginBtn.addEventListener('click', doLogin);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && loginScreen.style.display !== 'none' && !loginScreen.classList.contains('login-screen--out')) doLogin();
+  });
+
+  togglePw.addEventListener('click', () => {
+    pwInput.type = pwInput.type === 'password' ? 'text' : 'password';
+    togglePw.textContent = pwInput.type === 'password' ? '👁' : '🙈';
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    sessionStorage.removeItem('sp_auth');
+    appEl.style.display = 'none';
+    loginScreen.style.display = 'flex';
+    loginScreen.classList.remove('login-screen--out');
+    document.getElementById('username').value = '';
+    pwInput.value = '';
+    loginBtn.classList.remove('login-btn--success');
+    loginErr.style.display = 'none';
+  });
+
+  /* ─── Dashboard logic ─── */
+  let dashboardInited = false;
+
+  function initDashboard() {
+    if (dashboardInited) return;
+    dashboardInited = true;
+
+    // Clock
+    const clockEl = document.getElementById('clock');
+    function tick() { clockEl.textContent = new Date().toLocaleTimeString('en-IN',{hour12:false}); }
+    tick(); setInterval(tick, 1000);
+
+    // State
+    const TOTAL = 3;
+    let slots = Array.from({length:TOTAL},(_,i)=>({id:i+1,status:'available'}));
+
+    function renderSlots() {
+      document.getElementById('slots-list').innerHTML = slots.map(s=>`
+        <div class="slot-card ${s.status}">
+          <div class="sl-left">
+            <div class="sl-num">${s.id}</div>
+            <div>
+              <div class="sl-name">Slot S${s.id}</div>
+              <div class="sl-sub">${s.status}</div>
+            </div>
           </div>
-        </div>
-        <div class="sl-icon">${s.status==='occupied'?'🚗':'🟩'}</div>
-      </div>`).join('');
+          <div class="sl-icon">${s.status==='occupied'?'🚗':'🟩'}</div>
+        </div>`).join('');
+    }
+
+    function updateStats() {
+      const occ=slots.filter(s=>s.status==='occupied').length, free=TOTAL-occ, pct=Math.round(occ/TOTAL*100);
+      document.getElementById('occ-count').textContent=occ;
+      document.getElementById('free-count').textContent=free;
+      document.getElementById('cap-pct').textContent=pct+'%';
+      document.getElementById('cap-occ').textContent=occ+' occupied';
+      document.getElementById('cap-free').textContent=free+' free';
+      const f=document.getElementById('cap-fill');
+      f.style.width=pct+'%';
+      f.style.background=pct>80?'linear-gradient(90deg,var(--amber),var(--red))':pct>50?'linear-gradient(90deg,var(--purple),var(--amber))':'linear-gradient(90deg,var(--purple),var(--accent))';
+    }
+
+    function updateGate(g) {
+      const open=String(g).toLowerCase().includes('open');
+      const v=document.getElementById('gate-val'), i=document.getElementById('gate-ico');
+      v.textContent=open?'▲  OPEN':'▼  CLOSED';
+      v.className='gate-val '+(open?'open':'closed');
+      i.className='gate-ico '+(open?'open':'closed');
+      i.textContent=open?'🔓':'🔒';
+    }
+
+    function renderLog(entries) {
+      document.getElementById('log-cnt').textContent=entries.length+' entries';
+      const tbody=document.getElementById('log-body');
+      if(!entries.length){tbody.innerHTML='<tr class="empty-row"><td colspan="5">No activity yet — waiting for Arduino…</td></tr>';return;}
+      tbody.innerHTML=entries.slice(0,30).map(e=>`<tr>
+        <td>${e.vehicle||'—'}</td><td>${e.slot||'—'}</td>
+        <td><span class="badge ${e.type==='IN'?'in':'out'}">${e.type||'—'}</span></td>
+        <td>${e.time||'—'}</td>
+        <td class="amt">${e.amount!=null?'₹'+e.amount:'—'}</td>
+      </tr>`).join('');
+    }
+
+    async function fetchStatus() {
+      try {
+        const res=await fetch('/status'); if(!res.ok)throw 0;
+        const d=await res.json();
+        if(d.revenue!==undefined) document.getElementById('revenue').textContent='₹'+d.revenue;
+        if(d.gate!==undefined) updateGate(d.gate);
+        if(Array.isArray(d.slots)){d.slots.forEach((s,i)=>{if(slots[i])slots[i].status=s.occupied?'occupied':'available';});renderSlots();updateStats();}
+        if(Array.isArray(d.log)) renderLog(d.log);
+      } catch(_){}
+    }
+
+    // Demo seed
+    document.getElementById('revenue').textContent='₹240';
+    updateGate('OPEN');
+    slots[0].status='occupied'; slots[2].status='occupied';
+    renderSlots(); updateStats();
+    renderLog([
+      {vehicle:'TN01AB1234',slot:'S1',type:'IN', time:'14:05',amount:null},
+      {vehicle:'TN22CD5678',slot:'S3',type:'IN', time:'13:48',amount:null},
+      {vehicle:'TN09EF9012',slot:'S2',type:'OUT',time:'13:30',amount:40},
+    ]);
+
+    fetchStatus();
+    setInterval(fetchStatus, 3000);
   }
-
-  function updateStats() {
-    const occ=slots.filter(s=>s.status==='occupied').length, free=TOTAL-occ, pct=Math.round(occ/TOTAL*100);
-    document.getElementById('occ-count').textContent=occ;
-    document.getElementById('free-count').textContent=free;
-    document.getElementById('cap-pct').textContent=pct+'%';
-    document.getElementById('cap-occ').textContent=occ+' occupied';
-    document.getElementById('cap-free').textContent=free+' free';
-    const f=document.getElementById('cap-fill');
-    f.style.width=pct+'%';
-    f.style.background=pct>80?'linear-gradient(90deg,var(--amber),var(--red))':pct>50?'linear-gradient(90deg,var(--purple),var(--amber))':'linear-gradient(90deg,var(--purple),var(--accent))';
-  }
-
-  function updateGate(g) {
-    const open=String(g).toLowerCase().includes('open');
-    const v=document.getElementById('gate-val'), i=document.getElementById('gate-ico');
-    v.textContent=open?'▲  OPEN':'▼  CLOSED';
-    v.className='gate-val '+(open?'open':'closed');
-    i.className='gate-ico '+(open?'open':'closed');
-    i.textContent=open?'🔓':'🔒';
-  }
-
-  function renderLog(entries) {
-    document.getElementById('log-cnt').textContent=entries.length+' entries';
-    const tbody=document.getElementById('log-body');
-    if(!entries.length){tbody.innerHTML='<tr class="empty-row"><td colspan="5">No activity yet — waiting for Arduino…</td></tr>';return;}
-    tbody.innerHTML=entries.slice(0,30).map(e=>`<tr>
-      <td>${e.vehicle||'—'}</td><td>${e.slot||'—'}</td>
-      <td><span class="badge ${e.type==='IN'?'in':'out'}">${e.type||'—'}</span></td>
-      <td>${e.time||'—'}</td>
-      <td class="amt">${e.amount!=null?'₹'+e.amount:'—'}</td>
-    </tr>`).join('');
-  }
-
-  async function fetchStatus() {
-    try {
-      const res=await fetch('/status'); if(!res.ok)throw 0;
-      const d=await res.json();
-      if(d.revenue!==undefined) document.getElementById('revenue').textContent='₹'+d.revenue;
-      if(d.gate!==undefined) updateGate(d.gate);
-      if(Array.isArray(d.slots)){d.slots.forEach((s,i)=>{if(slots[i])slots[i].status=s.occupied?'occupied':'available';});renderSlots();updateStats();}
-      if(Array.isArray(d.log)) renderLog(d.log);
-    } catch(_){}
-  }
-
-  // Demo seed
-  document.getElementById('revenue').textContent='₹240';
-  updateGate('OPEN');
-  slots[0].status='occupied'; slots[2].status='occupied';
-  renderSlots(); updateStats();
-  renderLog([
-    {vehicle:'TN01AB1234',slot:'S1',type:'IN', time:'14:05',amount:null},
-    {vehicle:'TN22CD5678',slot:'S3',type:'IN', time:'13:48',amount:null},
-    {vehicle:'TN09EF9012',slot:'S2',type:'OUT',time:'13:30',amount:40},
-  ]);
-
-  fetchStatus();
-  setInterval(fetchStatus, 3000);
 </script>
 </body>
 </html>
