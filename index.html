@@ -3,704 +3,177 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Smart Parking System</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg: #0a0d13;
-      --surface: rgba(255,255,255,0.04);
-      --surface-hover: rgba(255,255,255,0.07);
-      --border: rgba(255,255,255,0.08);
-      --border-bright: rgba(255,255,255,0.15);
-      --accent: #00e5ff;
-      --accent2: #7c4dff;
-      --accent-glow: rgba(0,229,255,0.15);
-      --green: #00e676;
-      --red: #ff1744;
-      --amber: #ffab00;
-      --text: #e8eaf0;
-      --muted: rgba(232,234,240,0.45);
-      --font-display: 'Syne', sans-serif;
-      --font-mono: 'DM Mono', monospace;
-    }
-
-    html, body {
-      min-height: 100vh;
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-display);
-      overflow-x: hidden;
-    }
-
-    /* Animated grid background */
-    body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background-image:
-        linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
-      background-size: 60px 60px;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* Radial glow orbs */
-    body::after {
-      content: '';
-      position: fixed;
-      top: -200px; left: 50%;
-      transform: translateX(-50%);
-      width: 900px; height: 600px;
-      background: radial-gradient(ellipse at center, rgba(124,77,255,0.12) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .orb-bottom {
-      position: fixed;
-      bottom: -300px; right: -100px;
-      width: 700px; height: 700px;
-      background: radial-gradient(ellipse at center, rgba(0,229,255,0.08) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .wrapper {
-      position: relative; z-index: 1;
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 32px 24px 60px;
-    }
-
-    /* ── HEADER ── */
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 48px;
-      padding-bottom: 24px;
-      border-bottom: 1px solid var(--border);
-      animation: fadeDown 0.6s ease both;
-    }
-
-    .logo-group {
-      display: flex; align-items: center; gap: 14px;
-    }
-
-    .logo-icon {
-      width: 44px; height: 44px;
-      background: linear-gradient(135deg, var(--accent2), var(--accent));
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
-      box-shadow: 0 0 20px rgba(0,229,255,0.3);
-    }
-
-    .logo-text {
-      font-size: 18px; font-weight: 700; letter-spacing: -0.3px;
-    }
-
-    .logo-sub {
-      font-size: 11px; color: var(--muted); letter-spacing: 2px;
-      text-transform: uppercase; font-family: var(--font-mono); margin-top: 2px;
-    }
-
-    .header-right {
-      display: flex; align-items: center; gap: 12px;
-    }
-
-    .live-pill {
-      display: flex; align-items: center; gap: 7px;
-      background: rgba(0,230,118,0.08);
-      border: 1px solid rgba(0,230,118,0.2);
-      border-radius: 100px;
-      padding: 6px 14px;
-      font-family: var(--font-mono);
-      font-size: 12px; color: var(--green);
-      letter-spacing: 1px;
-    }
-
-    .live-dot {
-      width: 7px; height: 7px;
-      background: var(--green);
-      border-radius: 50%;
-      animation: pulse-green 1.8s ease infinite;
-    }
-
-    .time-chip {
-      font-family: var(--font-mono);
-      font-size: 12px; color: var(--muted);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 6px 12px;
-    }
-
-    /* ── STAT CARDS ROW ── */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin-bottom: 32px;
-    }
-
-    .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 24px;
-      position: relative;
-      overflow: hidden;
-      transition: border-color 0.25s, transform 0.25s, background 0.25s;
-      animation: fadeUp 0.5s ease both;
-    }
-
-    .stat-card:hover {
-      border-color: var(--border-bright);
-      background: var(--surface-hover);
-      transform: translateY(-2px);
-    }
-
-    .stat-card::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0;
-      height: 2px;
-      border-radius: 18px 18px 0 0;
-    }
-
-    .stat-card.revenue::before { background: linear-gradient(90deg, var(--accent2), var(--accent)); }
-    .stat-card.gate::before    { background: linear-gradient(90deg, var(--green), #00bcd4); }
-    .stat-card.occupied::before{ background: linear-gradient(90deg, var(--amber), #ff5722); }
-    .stat-card.free::before    { background: linear-gradient(90deg, var(--green), #69f0ae); }
-
-    .stat-label {
-      font-family: var(--font-mono);
-      font-size: 11px; color: var(--muted);
-      letter-spacing: 1.5px; text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-
-    .stat-value {
-      font-size: 32px; font-weight: 800;
-      letter-spacing: -1px; line-height: 1;
-    }
-
-    .stat-value.revenue-val { 
-      background: linear-gradient(90deg, #fff, var(--accent));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-
-    .stat-icon {
-      position: absolute; right: 20px; top: 20px;
-      font-size: 28px; opacity: 0.15;
-    }
-
-    .gate-badge {
-      display: inline-flex; align-items: center; gap: 7px;
-      font-size: 20px; font-weight: 700;
-    }
-
-    .gate-open  { color: var(--green); }
-    .gate-closed{ color: var(--red); }
-
-    /* ── SLOT GRID SECTION ── */
-    .section-header {
-      display: flex; align-items: center; gap: 10px;
-      margin-bottom: 20px;
-      animation: fadeUp 0.6s ease 0.15s both;
-    }
-
-    .section-title {
-      font-size: 14px; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 2px;
-      color: var(--muted);
-      font-family: var(--font-mono);
-    }
-
-    .section-line {
-      flex: 1; height: 1px;
-      background: var(--border);
-    }
-
-    .slots-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 14px;
-      margin-bottom: 36px;
-      animation: fadeUp 0.6s ease 0.2s both;
-    }
-
-    .slot {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px 14px 16px;
-      text-align: center;
-      cursor: default;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-    }
-
-    .slot:hover { transform: translateY(-3px) scale(1.02); }
-
-    .slot.available {
-      border-color: rgba(0,230,118,0.25);
-      background: rgba(0,230,118,0.05);
-    }
-    .slot.available::after {
-      content: ''; position: absolute; inset: 0;
-      background: radial-gradient(circle at 50% 0%, rgba(0,230,118,0.1), transparent 70%);
-    }
-
-    .slot.occupied {
-      border-color: rgba(255,23,68,0.25);
-      background: rgba(255,23,68,0.05);
-    }
-    .slot.occupied::after {
-      content: ''; position: absolute; inset: 0;
-      background: radial-gradient(circle at 50% 0%, rgba(255,23,68,0.1), transparent 70%);
-    }
-
-    .slot-icon {
-      font-size: 28px; margin-bottom: 8px;
-      position: relative; z-index: 1;
-    }
-
-    .slot-name {
-      font-size: 13px; font-weight: 700;
-      letter-spacing: 0.5px;
-      position: relative; z-index: 1;
-    }
-
-    .slot-status {
-      font-family: var(--font-mono);
-      font-size: 10px; margin-top: 5px;
-      text-transform: uppercase; letter-spacing: 1.5px;
-      position: relative; z-index: 1;
-    }
-
-    .slot.available .slot-status { color: var(--green); }
-    .slot.occupied  .slot-status { color: var(--red); }
-
-    .slot-bar {
-      position: absolute; bottom: 0; left: 0; right: 0;
-      height: 3px;
-    }
-    .slot.available .slot-bar { background: var(--green); opacity: 0.6; }
-    .slot.occupied  .slot-bar { background: var(--red);   opacity: 0.6; }
-
-    /* ── LOG TABLE ── */
-    .log-section {
-      animation: fadeUp 0.6s ease 0.3s both;
-    }
-
-    .log-table-wrap {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      overflow: hidden;
-    }
-
-    table {
-      width: 100%; border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    thead tr {
-      background: rgba(255,255,255,0.04);
-      border-bottom: 1px solid var(--border);
-    }
-
-    th {
-      padding: 14px 18px;
-      text-align: left;
-      font-family: var(--font-mono);
-      font-size: 10px; letter-spacing: 2px;
-      color: var(--muted); text-transform: uppercase;
-      font-weight: 500;
-    }
-
-    tbody tr {
-      border-bottom: 1px solid var(--border);
-      transition: background 0.15s;
-    }
-
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: var(--surface-hover); }
-
-    td {
-      padding: 13px 18px;
-      font-family: var(--font-mono);
-      font-size: 12px; color: var(--text);
-    }
-
-    .badge {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 3px 10px; border-radius: 100px;
-      font-size: 10px; font-weight: 600;
-      letter-spacing: 1px; text-transform: uppercase;
-    }
-
-    .badge.in  { background: rgba(0,230,118,0.12); color: var(--green); border: 1px solid rgba(0,230,118,0.2); }
-    .badge.out { background: rgba(0,229,255,0.10); color: var(--accent); border: 1px solid rgba(0,229,255,0.2); }
-
-    .amount-cell { color: var(--accent); font-weight: 500; }
-
-    /* ── CAPACITY BAR ── */
-    .capacity-section {
-      margin-bottom: 32px;
-      animation: fadeUp 0.6s ease 0.25s both;
-    }
-
-    .capacity-bar-wrap {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 20px 24px;
-    }
-
-    .cap-top {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 14px;
-    }
-
-    .cap-label { font-size: 13px; font-weight: 600; }
-    .cap-pct {
-      font-family: var(--font-mono); font-size: 13px;
-      color: var(--accent);
-    }
-
-    .bar-track {
-      background: rgba(255,255,255,0.06);
-      border-radius: 100px; height: 8px;
-      overflow: hidden;
-    }
-
-    .bar-fill {
-      height: 100%; border-radius: 100px;
-      background: linear-gradient(90deg, var(--accent2), var(--accent));
-      transition: width 1s cubic-bezier(0.4,0,0.2,1);
-      position: relative;
-    }
-
-    .bar-fill::after {
-      content: '';
-      position: absolute; right: 0; top: 50%;
-      transform: translateY(-50%);
-      width: 12px; height: 12px;
-      background: white;
-      border-radius: 50%;
-      box-shadow: 0 0 8px var(--accent);
-    }
-
-    .cap-detail {
-      display: flex; gap: 20px; margin-top: 12px;
-    }
-
-    .cap-item {
-      display: flex; align-items: center; gap: 7px;
-      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
-    }
-
-    .cap-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-    }
-
-    /* ── FOOTER ── */
-    footer {
-      margin-top: 48px;
-      padding-top: 24px;
-      border-top: 1px solid var(--border);
-      text-align: center;
-      font-family: var(--font-mono);
-      font-size: 11px; color: var(--muted);
-      letter-spacing: 1px;
-      animation: fadeUp 0.6s ease 0.4s both;
-    }
-
-    /* ── ANIMATIONS ── */
-    @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes pulse-green {
-      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,230,118,0.4); }
-      50%       { opacity: 0.6; box-shadow: 0 0 0 5px rgba(0,230,118,0); }
-    }
-
-    @keyframes shimmer {
-      0%   { opacity: 0.4; }
-      50%  { opacity: 1; }
-      100% { opacity: 0.4; }
-    }
-
-    .loading-shimmer {
-      animation: shimmer 1.6s ease infinite;
-      color: var(--muted);
-    }
-
-    /* ── RESPONSIVE ── */
-    @media(max-width: 600px) {
-      .stats-row { grid-template-columns: 1fr 1fr; }
-      .slots-grid { grid-template-columns: repeat(3, 1fr); }
-      header { flex-direction: column; align-items: flex-start; gap: 16px; }
-    }
-  </style>
+  <title>SmartPark Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<div class="orb-bottom"></div>
-<div class="wrapper">
+<div class="app">
 
-  <!-- HEADER -->
-  <header>
-    <div class="logo-group">
-      <div class="logo-icon">🅿</div>
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">🅿</div>
       <div>
-        <div class="logo-text">SmartPark</div>
-        <div class="logo-sub">Management System</div>
+        <div class="brand-name">SmartPark</div>
+        <div class="brand-tag">Management System</div>
       </div>
     </div>
-    <div class="header-right">
-      <div class="live-pill">
-        <span class="live-dot"></span>
-        LIVE
-      </div>
-      <div class="time-chip" id="clock">--:--:--</div>
+    <div class="topbar-right">
+      <div class="pill pill-live"><span class="pulse"></span>LIVE</div>
+      <div class="pill pill-time" id="clock">--:--:--</div>
     </div>
   </header>
 
-  <!-- STAT CARDS -->
-  <div class="stats-row">
-    <div class="stat-card revenue" style="animation-delay:0.05s">
-      <span class="stat-icon">💰</span>
-      <div class="stat-label">Total Revenue</div>
-      <div class="stat-value revenue-val" id="revenue">₹0</div>
-    </div>
-
-    <div class="stat-card gate" style="animation-delay:0.1s">
-      <span class="stat-icon">🚧</span>
-      <div class="stat-label">Gate Status</div>
-      <div class="stat-value">
-        <span class="gate-badge" id="gate-badge">
-          <span class="loading-shimmer">···</span>
-        </span>
+  <!-- LEFT PANEL -->
+  <aside class="left">
+    <!-- Stats -->
+    <div class="mini-stats">
+      <div class="mini-card mc-rev" style="grid-column:span 2">
+        <div class="mc-label">Total Revenue</div>
+        <div class="mc-val grad" id="revenue">₹0</div>
+      </div>
+      <div class="mini-card mc-occ">
+        <div class="mc-label">Occupied</div>
+        <div class="mc-val" style="color:var(--amber)" id="occ-count">—</div>
+      </div>
+      <div class="mini-card mc-free">
+        <div class="mc-label">Available</div>
+        <div class="mc-val" style="color:var(--green)" id="free-count">—</div>
       </div>
     </div>
 
-    <div class="stat-card occupied" style="animation-delay:0.15s">
-      <span class="stat-icon">🚗</span>
-      <div class="stat-label">Occupied</div>
-      <div class="stat-value" id="occupied-count" style="color:var(--amber)">—</div>
-    </div>
-
-    <div class="stat-card free" style="animation-delay:0.2s">
-      <span class="stat-icon">✅</span>
-      <div class="stat-label">Available</div>
-      <div class="stat-value" id="free-count" style="color:var(--green)">—</div>
-    </div>
-  </div>
-
-  <!-- CAPACITY BAR -->
-  <div class="capacity-section">
-    <div class="capacity-bar-wrap">
-      <div class="cap-top">
-        <span class="cap-label">Parking Capacity</span>
-        <span class="cap-pct" id="cap-pct">0%</span>
+    <!-- Capacity -->
+    <div class="sec-label">Capacity</div>
+    <div class="cap-box">
+      <div class="cap-row">
+        <span class="cap-title">Lot Utilization</span>
+        <span class="cap-pct-val" id="cap-pct">0%</span>
       </div>
-      <div class="bar-track">
-        <div class="bar-fill" id="cap-bar" style="width:0%"></div>
-      </div>
-      <div class="cap-detail">
-        <div class="cap-item">
-          <span class="cap-dot" style="background:var(--red)"></span>
-          <span id="cap-occ-text">0 occupied</span>
-        </div>
-        <div class="cap-item">
-          <span class="cap-dot" style="background:var(--green)"></span>
-          <span id="cap-free-text">0 free</span>
-        </div>
+      <div class="track"><div class="fill" id="cap-fill" style="width:0%"></div></div>
+      <div class="cap-chips">
+        <div class="cap-chip"><span class="dot" style="background:var(--red)"></span><span id="cap-occ">0 occupied</span></div>
+        <div class="cap-chip"><span class="dot" style="background:var(--green)"></span><span id="cap-free">0 free</span></div>
       </div>
     </div>
-  </div>
 
-  <!-- SLOT GRID -->
-  <div class="section-header">
-    <span class="section-title">Parking Slots</span>
-    <div class="section-line"></div>
-  </div>
+    <!-- Slots -->
+    <div class="sec-label">Parking Slots</div>
+    <div class="slots-list" id="slots-list"></div>
+  </aside>
 
-  <div class="slots-grid" id="slots-grid">
-    <!-- rendered by JS -->
-  </div>
-
-  <!-- LOG TABLE -->
-  <div class="log-section">
-    <div class="section-header">
-      <span class="section-title">Recent Activity</span>
-      <div class="section-line"></div>
+  <!-- RIGHT PANEL -->
+  <main class="right">
+    <!-- Gate -->
+    <div class="gate-banner">
+      <div>
+        <div class="gate-lbl">Gate Status</div>
+        <div class="gate-val open" id="gate-val">Loading…</div>
+      </div>
+      <div class="gate-ico open" id="gate-ico">🚧</div>
     </div>
-    <div class="log-table-wrap">
+
+    <!-- Log -->
+    <div class="sec-label">Recent Activity</div>
+    <div class="log-wrap">
+      <div class="log-head">
+        <span class="log-title">Activity Log</span>
+        <span class="log-cnt" id="log-cnt">0 entries</span>
+      </div>
       <table>
         <thead>
-          <tr>
-            <th>Vehicle</th>
-            <th>Slot</th>
-            <th>Event</th>
-            <th>Time</th>
-            <th>Amount</th>
-          </tr>
+          <tr><th>Vehicle</th><th>Slot</th><th>Event</th><th>Time</th><th>Amount</th></tr>
         </thead>
         <tbody id="log-body">
-          <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--font-mono);font-size:12px;">No activity yet — waiting for Arduino data…</td></tr>
+          <tr class="empty-row"><td colspan="5">No activity yet — waiting for Arduino…</td></tr>
         </tbody>
       </table>
     </div>
-  </div>
 
-  <footer>
-    Arduino-connected · Real-time sync · SmartPark v1.0
-  </footer>
+    <div class="right-footer">Arduino · Real-time sync · SmartPark v1.0</div>
+  </main>
+
 </div>
-
 <script>
-  // ── CLOCK ──
-  function updateClock() {
-    const now = new Date();
-    document.getElementById('clock').textContent =
-      now.toLocaleTimeString('en-IN', { hour12: false });
-  }
-  updateClock();
-  setInterval(updateClock, 1000);
+  // Clock
+  const clockEl = document.getElementById('clock');
+  function tick() { clockEl.textContent = new Date().toLocaleTimeString('en-IN',{hour12:false}); }
+  tick(); setInterval(tick, 1000);
 
-  // ── SLOTS CONFIG ──
-  const TOTAL_SLOTS = 3;
-  let slotsState = Array.from({ length: TOTAL_SLOTS }, (_, i) => ({
-    id: i + 1,
-    name: `S${i + 1}`,
-    status: 'available'
-  }));
+  // State
+  const TOTAL = 3;
+  let slots = Array.from({length:TOTAL},(_,i)=>({id:i+1,status:'available'}));
 
   function renderSlots() {
-    const grid = document.getElementById('slots-grid');
-    grid.innerHTML = slotsState.map(s => `
-      <div class="slot ${s.status}">
-        <div class="slot-icon">${s.status === 'occupied' ? '🚗' : '⬜'}</div>
-        <div class="slot-name">Slot ${s.name}</div>
-        <div class="slot-status">${s.status}</div>
-        <div class="slot-bar"></div>
-      </div>
-    `).join('');
+    document.getElementById('slots-list').innerHTML = slots.map(s=>`
+      <div class="slot-card ${s.status}">
+        <div class="sl-left">
+          <div class="sl-num">${s.id}</div>
+          <div>
+            <div class="sl-name">Slot S${s.id}</div>
+            <div class="sl-sub">${s.status}</div>
+          </div>
+        </div>
+        <div class="sl-icon">${s.status==='occupied'?'🚗':'🟩'}</div>
+      </div>`).join('');
   }
 
   function updateStats() {
-    const occ = slotsState.filter(s => s.status === 'occupied').length;
-    const free = TOTAL_SLOTS - occ;
-    const pct = Math.round((occ / TOTAL_SLOTS) * 100);
-
-    document.getElementById('occupied-count').textContent = occ;
-    document.getElementById('free-count').textContent = free;
-    document.getElementById('cap-pct').textContent = pct + '%';
-    document.getElementById('cap-occ-text').textContent = occ + ' occupied';
-    document.getElementById('cap-free-text').textContent = free + ' free';
-
-    const bar = document.getElementById('cap-bar');
-    bar.style.width = pct + '%';
-    if (pct > 80) bar.style.background = 'linear-gradient(90deg, var(--amber), var(--red))';
-    else if (pct > 50) bar.style.background = 'linear-gradient(90deg, var(--accent2), var(--amber))';
-    else bar.style.background = 'linear-gradient(90deg, var(--accent2), var(--accent))';
+    const occ=slots.filter(s=>s.status==='occupied').length, free=TOTAL-occ, pct=Math.round(occ/TOTAL*100);
+    document.getElementById('occ-count').textContent=occ;
+    document.getElementById('free-count').textContent=free;
+    document.getElementById('cap-pct').textContent=pct+'%';
+    document.getElementById('cap-occ').textContent=occ+' occupied';
+    document.getElementById('cap-free').textContent=free+' free';
+    const f=document.getElementById('cap-fill');
+    f.style.width=pct+'%';
+    f.style.background=pct>80?'linear-gradient(90deg,var(--amber),var(--red))':pct>50?'linear-gradient(90deg,var(--purple),var(--amber))':'linear-gradient(90deg,var(--purple),var(--accent))';
   }
 
-  // ── FETCH FROM BACKEND ──
-  async function fetchStatus() {
-    try {
-      const res = await fetch('/status');
-      if (!res.ok) throw new Error('not ok');
-      const data = await res.json();
-
-      // Revenue
-      if (data.revenue !== undefined) {
-        document.getElementById('revenue').textContent = '₹' + data.revenue;
-      }
-
-      // Gate
-      if (data.gate !== undefined) {
-        const badge = document.getElementById('gate-badge');
-        const isOpen = String(data.gate).toLowerCase().includes('open');
-        badge.innerHTML = isOpen
-          ? `<span class="gate-open">▲ OPEN</span>`
-          : `<span class="gate-closed">▼ CLOSED</span>`;
-      }
-
-      // Slots
-      if (data.slots && Array.isArray(data.slots)) {
-        data.slots.forEach((slotData, i) => {
-          if (slotsState[i]) {
-            slotsState[i].status = slotData.occupied ? 'occupied' : 'available';
-          }
-        });
-        renderSlots();
-        updateStats();
-      }
-
-      // Log entries
-      if (data.log && Array.isArray(data.log)) {
-        renderLog(data.log);
-      }
-
-    } catch (e) {
-      // silently skip — keep showing last state
-    }
+  function updateGate(g) {
+    const open=String(g).toLowerCase().includes('open');
+    const v=document.getElementById('gate-val'), i=document.getElementById('gate-ico');
+    v.textContent=open?'▲  OPEN':'▼  CLOSED';
+    v.className='gate-val '+(open?'open':'closed');
+    i.className='gate-ico '+(open?'open':'closed');
+    i.textContent=open?'🔓':'🔒';
   }
 
   function renderLog(entries) {
-    const tbody = document.getElementById('log-body');
-    if (!entries.length) return;
-    tbody.innerHTML = entries.slice(0, 20).map(e => `
-      <tr>
-        <td>${e.vehicle || '—'}</td>
-        <td>${e.slot || '—'}</td>
-        <td><span class="badge ${e.type === 'IN' ? 'in' : 'out'}">${e.type || '—'}</span></td>
-        <td>${e.time || '—'}</td>
-        <td class="amount-cell">${e.amount !== undefined ? '₹' + e.amount : '—'}</td>
-      </tr>
-    `).join('');
+    document.getElementById('log-cnt').textContent=entries.length+' entries';
+    const tbody=document.getElementById('log-body');
+    if(!entries.length){tbody.innerHTML='<tr class="empty-row"><td colspan="5">No activity yet — waiting for Arduino…</td></tr>';return;}
+    tbody.innerHTML=entries.slice(0,30).map(e=>`<tr>
+      <td>${e.vehicle||'—'}</td><td>${e.slot||'—'}</td>
+      <td><span class="badge ${e.type==='IN'?'in':'out'}">${e.type||'—'}</span></td>
+      <td>${e.time||'—'}</td>
+      <td class="amt">${e.amount!=null?'₹'+e.amount:'—'}</td>
+    </tr>`).join('');
   }
 
-  // ── DEMO DATA (so UI doesn't look empty) ──
-  function seedDemo() {
-    document.getElementById('revenue').textContent = '₹240';
-
-    const badge = document.getElementById('gate-badge');
-    badge.innerHTML = `<span class="gate-open">▲ OPEN</span>`;
-
-    slotsState[0].status = 'occupied';
-    slotsState[2].status = 'occupied';
-    renderSlots();
-    updateStats();
-
-    const demoLog = [
-      { vehicle: 'TN01AB1234', slot: 'S1', type: 'IN',  time: '14:05', amount: undefined },
-      { vehicle: 'TN22CD5678', slot: 'S3', type: 'IN',  time: '13:48', amount: undefined },
-      { vehicle: 'TN09EF9012', slot: 'S2', type: 'OUT', time: '13:30', amount: 40 },
-    ];
-    renderLog(demoLog);
+  async function fetchStatus() {
+    try {
+      const res=await fetch('/status'); if(!res.ok)throw 0;
+      const d=await res.json();
+      if(d.revenue!==undefined) document.getElementById('revenue').textContent='₹'+d.revenue;
+      if(d.gate!==undefined) updateGate(d.gate);
+      if(Array.isArray(d.slots)){d.slots.forEach((s,i)=>{if(slots[i])slots[i].status=s.occupied?'occupied':'available';});renderSlots();updateStats();}
+      if(Array.isArray(d.log)) renderLog(d.log);
+    } catch(_){}
   }
 
-  // init
-  renderSlots();
-  updateStats();
-  seedDemo();           // show demo; real fetch will overwrite
+  // Demo seed
+  document.getElementById('revenue').textContent='₹240';
+  updateGate('OPEN');
+  slots[0].status='occupied'; slots[2].status='occupied';
+  renderSlots(); updateStats();
+  renderLog([
+    {vehicle:'TN01AB1234',slot:'S1',type:'IN', time:'14:05',amount:null},
+    {vehicle:'TN22CD5678',slot:'S3',type:'IN', time:'13:48',amount:null},
+    {vehicle:'TN09EF9012',slot:'S2',type:'OUT',time:'13:30',amount:40},
+  ]);
+
   fetchStatus();
-  setInterval(fetchStatus, 3000);  // poll every 3s
+  setInterval(fetchStatus, 3000);
 </script>
 </body>
 </html>
