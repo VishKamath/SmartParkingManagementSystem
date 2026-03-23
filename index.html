@@ -1,51 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Smart Parking</title>
-  <style>
-    body { font-family: Arial; text-align: center; }
-    .slot {
-      padding: 20px;
-      margin: 10px;
-      border: 2px solid black;
-      display: inline-block;
-      width: 150px;
-    }
-    .free { background: lightgreen; }
-    .full { background: lightcoral; }
-  </style>
+  <title>Smart Parking Dashboard</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<h1>🚗 Smart Parking System</h1>
+<h1>🚗 Smart Parking Dashboard</h1>
 
-<div id="slots"></div>
-<h2 id="gate"></h2>
+<div class="container">
+  <div id="slots"></div>
+</div>
 
-<script>
-async function updateUI() {
-  let res = await fetch("/data");
-  let data = await res.json();
+<h2 id="gate">Gate: Loading...</h2>
 
-  let slotsHTML = "";
-
-  for (let i = 1; i <= 3; i++) {
-    let status = data["slot" + i];
-    let className = status == 1 ? "full" : "free";
-    let text = status == 1 ? "Occupied" : "Available";
-
-    slotsHTML += `<div class="slot ${className}">
-        Slot ${i}<br>${text}
-    </div>`;
-  }
-
-  document.getElementById("slots").innerHTML = slotsHTML;
-  document.getElementById("gate").innerText = "Gate: " + data.gate;
-}
-
-setInterval(updateUI, 1000);
-</script>
+<script src="script.js"></script>
 
 </body>
 </html>
