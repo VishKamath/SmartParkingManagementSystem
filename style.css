@@ -1,48 +1,95 @@
-body {
-  font-family: Arial;
-  text-align: center;
-  background: #0f172a;
-  color: white;
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
+/* Body */
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: white;
+  text-align: center;
+}
+
+/* Title */
 h1 {
   margin: 20px;
+  font-size: 32px;
+  letter-spacing: 1px;
 }
 
-.container {
-  display: flex;
-  justify-content: center;
-}
-
-.slot {
-  padding: 25px;
-  margin: 15px;
-  border-radius: 15px;
-  width: 150px;
-  font-size: 18px;
-  font-weight: bold;
-  transition: 0.3s;
-}
-
-.free {
-  background: #22c55e;
-}
-
-.full {
-  background: #ef4444;
-}
-
-.slot:hover {
-  transform: scale(1.05);
-}
-
+/* Total Revenue */
 #total {
   font-size: 26px;
   margin: 15px;
   color: #38bdf8;
 }
 
+/* Container */
+.container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+/* Slot Cards */
+.slot {
+  padding: 25px;
+  margin: 15px;
+  border-radius: 18px;
+  width: 180px;
+  font-size: 18px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+/* Available Slot */
+.free {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+/* Occupied Slot */
+.full {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+}
+
+/* Hover Effect */
+.slot:hover {
+  transform: translateY(-8px) scale(1.05);
+}
+
+/* Cost Text */
+.slot small {
+  display: block;
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: normal;
+  opacity: 0.9;
+}
+
+/* Gate Status */
 #gate {
   margin-top: 30px;
-  font-size: 26px;
+  font-size: 24px;
+  padding: 10px 20px;
+  display: inline-block;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .slot {
+    width: 140px;
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
 }
