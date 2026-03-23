@@ -36,6 +36,12 @@ h1 {
   transform: scale(1.05);
 }
 
+#total {
+  font-size: 26px;
+  margin: 15px;
+  color: #38bdf8;
+}
+
 #gate {
   margin-top: 30px;
   font-size: 26px;
