@@ -1,65 +1,91 @@
-let slots = {
-  slot1: { startTime: null, cost: 0 },
-  slot2: { startTime: null, cost: 0 },
-  slot3: { startTime: null, cost: 0 }
-};
+async function updateDashboard() {
 
-const RATE = 10; // ₹10
-const INTERVAL = 10; // seconds
+try {
 
-async function updateUI() {
-  try {
-    let res = await fetch("/data");
-    let data = await res.json();
+const response = await fetch("/data");
+const data = await response.json();
 
-    let slotsHTML = "";
-    let total = 0;
+console.log("DATA:", data);
 
-    let now = Date.now();
+// Revenue
+document.getElementById("totalRevenue").innerText =
+"₹" + data.totalRevenue;
 
-    for (let i = 1; i <= 3; i++) {
-      let key = "slot" + i;
-      let status = data[key];
+// Gate Status
+document.getElementById("gateStatus").innerText =
+data.gateStatus;
 
-      // if car enters → start timer
-      if (status == 1 && slots[key].startTime === null) {
-        slots[key].startTime = now;
-      }
+// Occupied
+document.getElementById("occupied").innerText =
+data.occupied;
 
-      // if car leaves → reset
-      if (status == 0) {
-        slots[key].startTime = null;
-        slots[key].cost = 0;
-      }
+// Available
+document.getElementById("available").innerText =
+data.available;
 
-      // calculate cost
-      if (slots[key].startTime !== null) {
-        let duration = (now - slots[key].startTime) / 1000; // seconds
-        let units = Math.floor(duration / INTERVAL);
-        slots[key].cost = units * RATE;
-      }
+// Slot Indicators
+updateSlots(data);
 
-      let className = status == 1 ? "full" : "free";
-      let text = status == 1 ? "Occupied" : "Available";
-      let costText = status == 1 ? `₹${slots[key].cost}` : "--";
+} catch (error) {
 
-      total += slots[key].cost;
+console.log("Error fetching data:", error);
 
-      slotsHTML += `
-        <div class="slot ${className}">
-          Slot ${i}<br>${text}<br>
-          <small>Cost: ${costText}</small>
-        </div>
-      `;
-    }
-
-    document.getElementById("slots").innerHTML = slotsHTML;
-    document.getElementById("gate").innerText = "Gate: " + data.gate;
-    document.getElementById("total").innerText = "Total Revenue: ₹" + total;
-
-  } catch (err) {
-    console.log("Error:", err);
-  }
 }
 
-setInterval(updateUI, 1000);
+}
+
+
+// Slot Update
+function updateSlots(data){
+
+document.getElementById("slot1").innerText =
+data.slot1 ? "Occupied" : "Available";
+
+document.getElementById("slot2").innerText =
+data.slot2 ? "Occupied" : "Available";
+
+document.getElementById("slot3").innerText =
+data.slot3 ? "Occupied" : "Available";
+
+}
+
+
+// Activity Update
+async function updateActivity(){
+
+const res = await fetch("/activity");
+const logs = await res.json();
+
+const table = document.getElementById("activityTable");
+
+table.innerHTML = "";
+
+logs.slice(0,10).forEach(item=>{
+
+table.innerHTML += `
+<tr>
+<td>${item.vehicle}</td>
+<td>${item.slot}</td>
+<td>${item.event}</td>
+<td>${item.time}</td>
+<td>${item.amount}</td>
+</tr>
+`;
+
+});
+
+}
+
+
+// Auto Refresh
+setInterval(()=>{
+
+updateDashboard();
+updateActivity();
+
+},1000);
+
+
+// Initial Load
+updateDashboard();
+updateActivity();
