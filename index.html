@@ -1,312 +1,246 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartPark Dashboard</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartPark Dashboard</title>
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<!-- ═══════════════════════════════════════════
-     LOGIN SCREEN
-═══════════════════════════════════════════ -->
+<!-- LOGIN -->
+
 <div class="login-screen" id="login-screen">
-  <!-- Ambient glow orbs -->
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
 
-  <div class="login-card">
-    <!-- Brand -->
-    <div class="login-brand">
-      <div class="login-brand-icon">🅿</div>
-      <div>
-        <div class="login-brand-name">SmartPark</div>
-        <div class="login-brand-tag">Management System</div>
-      </div>
-    </div>
+<div class="login-card">
+<h2>SmartPark Login</h2>
 
-    <div class="login-divider"></div>
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
 
-    <h2 class="login-heading">Welcome back</h2>
-    <p class="login-sub">Sign in to access your dashboard</p>
+<button id="login-btn">Login</button>
 
-    <!-- Form -->
-    <div class="login-form">
-      <div class="field-group">
-        <label class="field-label" for="username">Username</label>
-        <div class="field-wrap">
-          <span class="field-icon">👤</span>
-          <input class="field-input" id="username" type="text" placeholder="Enter username" autocomplete="username" />
-        </div>
-      </div>
+<p id="login-error" style="display:none;color:red;">Invalid Login</p>
 
-      <div class="field-group">
-        <label class="field-label" for="password">Password</label>
-        <div class="field-wrap">
-          <span class="field-icon">🔑</span>
-          <input class="field-input" id="password" type="password" placeholder="Enter password" autocomplete="current-password" />
-          <button class="toggle-pw" id="toggle-pw" type="button" aria-label="Toggle password visibility">👁</button>
-        </div>
-      </div>
-
-      <div class="login-error" id="login-error">Incorrect username or password.</div>
-
-      <button class="login-btn" id="login-btn" type="button">
-        <span class="login-btn-text">Sign In</span>
-        <span class="login-btn-arrow">→</span>
-      </button>
-    </div>
-
-    <p class="login-hint">Default: <code>admin</code> / <code>smartpark123</code></p>
-  </div>
+</div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     DASHBOARD (hidden until login)
-═══════════════════════════════════════════ -->
+<!-- DASHBOARD -->
+
 <div class="app" id="app" style="display:none">
 
-  <!-- TOPBAR -->
-  <header class="topbar">
-    <div class="brand">
-      <div class="brand-icon">🅿</div>
-      <div>
-        <div class="brand-name">SmartPark</div>
-        <div class="brand-tag">Management System</div>
-      </div>
-    </div>
-    <div class="topbar-right">
-      <div class="pill pill-live"><span class="pulse"></span>LIVE</div>
-      <div class="pill pill-time" id="clock">--:--:--</div>
-      <button class="logout-btn" id="logout-btn" title="Sign out">⏻ Logout</button>
-    </div>
-  </header>
+<header class="topbar">
+<h2>SmartPark Management System</h2>
 
-  <!-- LEFT PANEL -->
-  <aside class="left">
-    <!-- Stats -->
-    <div class="mini-stats">
-      <div class="mini-card mc-rev" style="grid-column:span 2">
-        <div class="mc-label">Total Revenue</div>
-        <div class="mc-val grad" id="revenue">₹0</div>
-      </div>
-      <div class="mini-card mc-occ">
-        <div class="mc-label">Occupied</div>
-        <div class="mc-val" style="color:var(--amber)" id="occ-count">—</div>
-      </div>
-      <div class="mini-card mc-free">
-        <div class="mc-label">Available</div>
-        <div class="mc-val" style="color:var(--green)" id="free-count">—</div>
-      </div>
-    </div>
+<div>
+<span id="clock">--:--:--</span>
+<button id="logout-btn">Logout</button>
+</div>
 
-    <!-- Capacity -->
-    <div class="sec-label">Capacity</div>
-    <div class="cap-box">
-      <div class="cap-row">
-        <span class="cap-title">Lot Utilization</span>
-        <span class="cap-pct-val" id="cap-pct">0%</span>
-      </div>
-      <div class="track"><div class="fill" id="cap-fill" style="width:0%"></div></div>
-      <div class="cap-chips">
-        <div class="cap-chip"><span class="dot" style="background:var(--red)"></span><span id="cap-occ">0 occupied</span></div>
-        <div class="cap-chip"><span class="dot" style="background:var(--green)"></span><span id="cap-free">0 free</span></div>
-      </div>
-    </div>
+</header>
 
-    <!-- Slots -->
-    <div class="sec-label">Parking Slots</div>
-    <div class="slots-list" id="slots-list"></div>
-  </aside>
+<!-- LEFT -->
 
-  <!-- RIGHT PANEL -->
-  <main class="right">
-    <!-- Gate -->
-    <div class="gate-banner">
-      <div>
-        <div class="gate-lbl">Gate Status</div>
-        <div class="gate-val open" id="gate-val">Loading…</div>
-      </div>
-      <div class="gate-ico open" id="gate-ico">🚧</div>
-    </div>
+<aside class="left">
 
-    <!-- Log -->
-    <div class="sec-label">Recent Activity</div>
-    <div class="log-wrap">
-      <div class="log-head">
-        <span class="log-title">Activity Log</span>
-        <span class="log-cnt" id="log-cnt">0 entries</span>
-      </div>
-      <table>
-        <thead>
-          <tr><th>Vehicle</th><th>Slot</th><th>Event</th><th>Time</th><th>Amount</th></tr>
-        </thead>
-        <tbody id="log-body">
-          <tr class="empty-row"><td colspan="5">No activity yet — waiting for Arduino…</td></tr>
-        </tbody>
-      </table>
-    </div>
+<div class="mini-card">
+<h4>Total Revenue</h4>
+<h2 id="revenue">₹0</h2>
+</div>
 
-    <div class="right-footer">Arduino · Real-time sync · SmartPark v1.0</div>
-  </main>
+<div class="mini-card">
+<h4>Occupied</h4>
+<h2 id="occ-count">0</h2>
+</div>
+
+<div class="mini-card">
+<h4>Available</h4>
+<h2 id="free-count">3</h2>
+</div>
+
+<div class="slots-list" id="slots-list"></div>
+
+</aside>
+
+<!-- RIGHT -->
+
+<main class="right">
+
+<div class="gate-banner">
+<h3>Gate Status</h3>
+<h2 id="gate-val">Loading...</h2>
+</div>
+
+<div class="log-wrap">
+
+<h3>Activity Log</h3>
+
+<table>
+<thead>
+<tr>
+<th>Vehicle</th>
+<th>Slot</th>
+<th>Event</th>
+<th>Time</th>
+<th>Amount</th>
+</tr>
+</thead>
+
+<tbody id="log-body">
+<tr>
+<td colspan="5">Waiting for Arduino...</td>
+</tr>
+</tbody>
+
+</table>
+
+</div>
+
+</main>
 
 </div>
 
 <script>
-  /* ─── Auth ─── */
-  const USERS = { admin: 'smartpark123' };
 
-  const loginScreen = document.getElementById('login-screen');
-  const appEl       = document.getElementById('app');
-  const loginBtn    = document.getElementById('login-btn');
-  const loginErr    = document.getElementById('login-error');
-  const togglePw    = document.getElementById('toggle-pw');
-  const pwInput     = document.getElementById('password');
-  const logoutBtn   = document.getElementById('logout-btn');
+const USERS = { admin: "smartpark123" };
 
-  // Restore session
-  if (sessionStorage.getItem('sp_auth') === '1') showDashboard(false);
+const loginBtn = document.getElementById("login-btn");
+const loginErr = document.getElementById("login-error");
 
-  function showDashboard(animate) {
-    loginScreen.classList.add('login-screen--out');
-    setTimeout(() => {
-      loginScreen.style.display = 'none';
-      appEl.style.display = 'grid';
-      if (animate) appEl.classList.add('app--enter');
-    }, animate ? 500 : 0);
-    sessionStorage.setItem('sp_auth', '1');
-    initDashboard();
-  }
+loginBtn.onclick = () => {
 
-  function doLogin() {
-    const u = document.getElementById('username').value.trim();
-    const p = pwInput.value;
-    loginBtn.classList.add('login-btn--loading');
-    loginErr.style.display = 'none';
+const u = document.getElementById("username").value;
+const p = document.getElementById("password").value;
 
-    setTimeout(() => {
-      loginBtn.classList.remove('login-btn--loading');
-      if (USERS[u] && USERS[u] === p) {
-        loginBtn.classList.add('login-btn--success');
-        setTimeout(() => showDashboard(true), 600);
-      } else {
-        loginErr.style.display = 'block';
-        loginScreen.querySelector('.login-card').classList.add('shake');
-        setTimeout(() => loginScreen.querySelector('.login-card').classList.remove('shake'), 500);
-      }
-    }, 700);
-  }
+if (USERS[u] === p) {
 
-  loginBtn.addEventListener('click', doLogin);
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && loginScreen.style.display !== 'none' && !loginScreen.classList.contains('login-screen--out')) doLogin();
-  });
+document.getElementById("login-screen").style.display = "none";
+document.getElementById("app").style.display = "grid";
 
-  togglePw.addEventListener('click', () => {
-    pwInput.type = pwInput.type === 'password' ? 'text' : 'password';
-    togglePw.textContent = pwInput.type === 'password' ? '👁' : '🙈';
-  });
+initDashboard();
 
-  logoutBtn.addEventListener('click', () => {
-    sessionStorage.removeItem('sp_auth');
-    appEl.style.display = 'none';
-    loginScreen.style.display = 'flex';
-    loginScreen.classList.remove('login-screen--out');
-    document.getElementById('username').value = '';
-    pwInput.value = '';
-    loginBtn.classList.remove('login-btn--success');
-    loginErr.style.display = 'none';
-  });
+} else {
+loginErr.style.display = "block";
+}
 
-  /* ─── Dashboard logic ─── */
-  let dashboardInited = false;
+};
 
-  function initDashboard() {
-    if (dashboardInited) return;
-    dashboardInited = true;
 
-    // Clock
-    const clockEl = document.getElementById('clock');
-    function tick() { clockEl.textContent = new Date().toLocaleTimeString('en-IN',{hour12:false}); }
-    tick(); setInterval(tick, 1000);
 
-    // State
-    const TOTAL = 3;
-    let slots = Array.from({length:TOTAL},(_,i)=>({id:i+1,status:'available'}));
+document.getElementById("logout-btn").onclick = () => {
+location.reload();
+};
 
-    function renderSlots() {
-      document.getElementById('slots-list').innerHTML = slots.map(s=>`
-        <div class="slot-card ${s.status}">
-          <div class="sl-left">
-            <div class="sl-num">${s.id}</div>
-            <div>
-              <div class="sl-name">Slot S${s.id}</div>
-              <div class="sl-sub">${s.status}</div>
-            </div>
-          </div>
-          <div class="sl-icon">${s.status==='occupied'?'🚗':'🟩'}</div>
-        </div>`).join('');
-    }
 
-    function updateStats() {
-      const occ=slots.filter(s=>s.status==='occupied').length, free=TOTAL-occ, pct=Math.round(occ/TOTAL*100);
-      document.getElementById('occ-count').textContent=occ;
-      document.getElementById('free-count').textContent=free;
-      document.getElementById('cap-pct').textContent=pct+'%';
-      document.getElementById('cap-occ').textContent=occ+' occupied';
-      document.getElementById('cap-free').textContent=free+' free';
-      const f=document.getElementById('cap-fill');
-      f.style.width=pct+'%';
-      f.style.background=pct>80?'linear-gradient(90deg,var(--amber),var(--red))':pct>50?'linear-gradient(90deg,var(--purple),var(--amber))':'linear-gradient(90deg,var(--purple),var(--accent))';
-    }
 
-    function updateGate(g) {
-      const open=String(g).toLowerCase().includes('open');
-      const v=document.getElementById('gate-val'), i=document.getElementById('gate-ico');
-      v.textContent=open?'▲  OPEN':'▼  CLOSED';
-      v.className='gate-val '+(open?'open':'closed');
-      i.className='gate-ico '+(open?'open':'closed');
-      i.textContent=open?'🔓':'🔒';
-    }
+function initDashboard(){
 
-    function renderLog(entries) {
-      document.getElementById('log-cnt').textContent=entries.length+' entries';
-      const tbody=document.getElementById('log-body');
-      if(!entries.length){tbody.innerHTML='<tr class="empty-row"><td colspan="5">No activity yet — waiting for Arduino…</td></tr>';return;}
-      tbody.innerHTML=entries.slice(0,30).map(e=>`<tr>
-        <td>${e.vehicle||'—'}</td><td>${e.slot||'—'}</td>
-        <td><span class="badge ${e.type==='IN'?'in':'out'}">${e.type||'—'}</span></td>
-        <td>${e.time||'—'}</td>
-        <td class="amt">${e.amount!=null?'₹'+e.amount:'—'}</td>
-      </tr>`).join('');
-    }
+updateClock();
+setInterval(updateClock,1000);
 
-    async function fetchStatus() {
-      try {
-        const res=await fetch('/status'); if(!res.ok)throw 0;
-        const d=await res.json();
-        if(d.revenue!==undefined) document.getElementById('revenue').textContent='₹'+d.revenue;
-        if(d.gate!==undefined) updateGate(d.gate);
-        if(Array.isArray(d.slots)){d.slots.forEach((s,i)=>{if(slots[i])slots[i].status=s.occupied?'occupied':'available';});renderSlots();updateStats();}
-        if(Array.isArray(d.log)) renderLog(d.log);
-      } catch(_){}
-    }
+fetchStatus();
+setInterval(fetchStatus,1000);
 
-    // Demo seed
-    document.getElementById('revenue').textContent='₹240';
-    updateGate('OPEN');
-    slots[0].status='occupied'; slots[2].status='occupied';
-    renderSlots(); updateStats();
-    renderLog([
-      {vehicle:'TN01AB1234',slot:'S1',type:'IN', time:'14:05',amount:null},
-      {vehicle:'TN22CD5678',slot:'S3',type:'IN', time:'13:48',amount:null},
-      {vehicle:'TN09EF9012',slot:'S2',type:'OUT',time:'13:30',amount:40},
-    ]);
+}
 
-    fetchStatus();
-    setInterval(fetchStatus, 3000);
-  }
+
+
+function updateClock(){
+document.getElementById("clock").innerText =
+new Date().toLocaleTimeString();
+}
+
+
+
+function renderSlots(data){
+
+document.getElementById("slots-list").innerHTML =
+
+`
+<div>Slot 1 : ${data.slot1 ? "Occupied" : "Available"}</div>
+<div>Slot 2 : ${data.slot2 ? "Occupied" : "Available"}</div>
+<div>Slot 3 : ${data.slot3 ? "Occupied" : "Available"}</div>
+`;
+
+}
+
+
+
+function updateStats(data){
+
+document.getElementById("occ-count").innerText = data.occupied;
+document.getElementById("free-count").innerText = data.available;
+
+}
+
+
+
+function updateGate(status){
+
+document.getElementById("gate-val").innerText = status;
+
+}
+
+
+
+function renderLog(logs){
+
+const body = document.getElementById("log-body");
+
+if(!logs.length){
+body.innerHTML =
+`<tr><td colspan="5">No Activity</td></tr>`;
+return;
+}
+
+body.innerHTML = logs.map(l =>
+
+`
+<tr>
+<td>${l.vehicle}</td>
+<td>${l.slot}</td>
+<td>${l.event}</td>
+<td>${l.time}</td>
+<td>${l.amount}</td>
+</tr>
+`
+
+).join("");
+
+}
+
+
+
+async function fetchStatus(){
+
+try{
+
+const dataRes = await fetch("/data");
+const data = await dataRes.json();
+
+const logRes = await fetch("/activity");
+const logs = await logRes.json();
+
+document.getElementById("revenue").innerText =
+"₹" + data.totalRevenue;
+
+updateGate(data.gateStatus);
+
+renderSlots(data);
+updateStats(data);
+
+renderLog(logs);
+
+}
+catch(e){
+console.log("Fetch error",e);
+}
+
+}
+
 </script>
+
 </body>
 </html>
