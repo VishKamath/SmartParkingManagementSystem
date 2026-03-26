@@ -6,25 +6,32 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static(__dirname));
 
 
+// -----------------------------
 // Parking Data
+// -----------------------------
 let parkingData = {
     slot1: 0,
     slot2: 0,
     slot3: 0,
     totalRevenue: 0,
     occupied: 0,
-    available: 3
+    available: 3,
+    gateStatus: "OPEN"
 };
 
 
+// -----------------------------
 // Activity Log
+// -----------------------------
 let activityLog = [];
 
 
-// Slot Entry Times
+// -----------------------------
+// Slot Start Times
+// -----------------------------
 let slotStartTime = {
     slot1: null,
     slot2: null,
@@ -32,14 +39,16 @@ let slotStartTime = {
 };
 
 
-// Update from Arduino (Python Bridge)
+// -----------------------------
+// Update Route (Python Bridge)
+// -----------------------------
 app.post("/update", (req, res) => {
 
     const newData = req.body;
 
     ["slot1","slot2","slot3"].forEach(slot => {
 
-        // Car Entered
+        // Vehicle Entry
         if(parkingData[slot] === 0 && newData[slot] === 1)
         {
             slotStartTime[slot] = Date.now();
@@ -47,25 +56,27 @@ app.post("/update", (req, res) => {
             activityLog.unshift({
                 vehicle: "Vehicle",
                 slot: slot.toUpperCase(),
-                event: "Entry",
+                event: "ENTRY",
                 time: new Date().toLocaleTimeString(),
                 amount: "-"
             });
         }
 
-        // Car Left
+
+        // Vehicle Exit
         if(parkingData[slot] === 1 && newData[slot] === 0)
         {
-            let duration = (Date.now() - slotStartTime[slot]) / 60000;
+            let duration =
+            (Date.now() - slotStartTime[slot]) / 60000;
 
-            let cost = Math.ceil(duration) * 5; // ₹5 per min
+            let cost = Math.ceil(duration) * 5;
 
             parkingData.totalRevenue += cost;
 
             activityLog.unshift({
                 vehicle: "Vehicle",
                 slot: slot.toUpperCase(),
-                event: "Exit",
+                event: "EXIT",
                 time: new Date().toLocaleTimeString(),
                 amount: "₹" + cost
             });
@@ -74,6 +85,7 @@ app.post("/update", (req, res) => {
         }
 
     });
+
 
     parkingData.slot1 = newData.slot1;
     parkingData.slot2 = newData.slot2;
@@ -84,35 +96,48 @@ app.post("/update", (req, res) => {
         parkingData.slot2 +
         parkingData.slot3;
 
-    parkingData.available = 3 - parkingData.occupied;
+    parkingData.available =
+        3 - parkingData.occupied;
 
-    console.log("Updated Data:", parkingData);
+    parkingData.gateStatus =
+        parkingData.available > 0 ?
+        "OPEN" : "FULL";
+
+    console.log("Updated:", parkingData);
 
     res.send("OK");
 });
 
 
+// -----------------------------
 // Get Parking Data
-app.get("/data", (req, res) => {
+// -----------------------------
+app.get("/data", (req,res)=>{
     res.json(parkingData);
 });
 
 
-// Get Activity Log
-app.get("/activity", (req, res) => {
+// -----------------------------
+// Activity Log
+// -----------------------------
+app.get("/activity",(req,res)=>{
     res.json(activityLog.slice(0,20));
 });
 
 
-// Serve Website
-app.get("/", (req,res)=>{
-    res.sendFile(path.join(__dirname,"public","index.html"));
+// -----------------------------
+// Homepage
+// -----------------------------
+app.get("/",(req,res)=>{
+    res.sendFile(path.join(__dirname,"index.html"));
 });
 
 
+// -----------------------------
 // Render Port
+// -----------------------------
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, ()=>{
-    console.log("Server Running on port " + PORT);
+app.listen(PORT,()=>{
+console.log("Server Running on port " + PORT);
 });
